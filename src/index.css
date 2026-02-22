@@ -1,0 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap');
+
+h2, .card-title {
+    color: #ffc107 !important;
+    text-shadow: 2px 2px 4px #000;
+    text-transform: uppercase;
+}
+
+h2 { font-size: 3rem; }
+.card-title { font-size: 1.2rem; }
+
+.custom-scrollbar::-webkit-scrollbar { height: 8px; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #ffc107;
+    border-radius: 10px;
+}
+
+body {
+    background-color: #1a1a1a; /* Gris muy oscuro casi negro */
+    color: white;
+}
