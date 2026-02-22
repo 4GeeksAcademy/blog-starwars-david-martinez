@@ -6,7 +6,7 @@ export const Navbar = () => {
     const { store, dispatch } = useStore();
 
     return (
-        <nav className="navbar navbar-dark bg-dark mb-3 px-5 border-bottom border-secondary sticky-top">
+        <nav className="navbar navbar-dark bg-transparent mb-3 px-5 border-bottom border-secondary sticky-top">
             <Link to="/">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/6/6c/Star_Wars_Logo.svg" style={{ width: "100px" }} alt="logo" />
             </Link>
