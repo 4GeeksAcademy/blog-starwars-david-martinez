@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import useStore from "../hooks/useGlobalReducer";
 
 export const Home = () => {
-    // Traigo el store (datos) y el dispatch (para mandar acciones) de mi hook global
+    // Traigo el store y el dispatch de mi hook global
     const { store, dispatch } = useStore();
     // Estado local para lo que el usuario escribe en el buscador
     const [search, setSearch] = useState("");
@@ -118,3 +118,6 @@ export const Home = () => {
         </div>
     );
 };
+
+
+/// Con los comentarios como te dije Erwin :D 
