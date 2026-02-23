@@ -1,69 +1,89 @@
-import React, { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, Link } from "react-router-dom";
 
 export const Single = () => {
-    const { type, uid } = useParams(); // Deben coincidir con el router
-    const [detail, setDetail] = useState(null);
+    const { type, uid } = useParams();
+    const [item, setItem] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setLoading(true);
         fetch(`https://www.swapi.tech/api/${type}/${uid}`)
             .then(res => res.json())
             .then(data => {
-                if (data.result) setDetail(data.result.properties);
+                setItem(data.result.properties);
+                setLoading(false);
             })
-            .catch(err => console.error("Error:", err));
+            .catch(err => {
+                console.error("Error fetching details:", err);
+                setLoading(false);
+            });
     }, [type, uid]);
 
-    if (!detail) return <div className="text-center mt-5"><div className="spinner-border text-warning"></div></div>;
+    if (loading) return (
+        <div className="d-flex justify-content-center align-items-center" style={{ height: "60vh" }}>
+            <div className="spinner-border text-warning" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    );
 
     return (
-        <div className="container mt-5 text-white">
-            <div className="row bg-dark rounded p-4 border border-secondary">
-                <div className="col-md-6 text-center">
-                    <img 
-                        src={`https://raw.githubusercontent.com/tbone849/star-wars-guide/master/build/assets/img/${type === "people" ? "characters" : type}/${uid}.jpg`}
-                        className="img-fluid rounded shadow"
-                        onError={(e) => e.target.src = "https://starwars-visualguide.com/assets/img/placeholder.jpg"}
-                    />
-                </div>
-                <div className="col-md-6 d-flex flex-column justify-content-center">
-                    <h1 className="display-4 fw-bold text-warning">{detail.name}</h1>
-                    <p className="fs-5 text-secondary text-center">A story from a galaxy far, far away...</p>
+        <div className="container mt-5">
+            {/* Tarjeta Principal de Detalles */}
+            <div className="card mb-3 bg-black bg-opacity-75 text-white border-warning shadow-lg overflow-hidden">
+                <div className="row g-0">
+                    <div className="col-md-6">
+                        <img 
+                            src={`https://raw.githubusercontent.com/tbone849/star-wars-guide/master/build/assets/img/${type === "people" ? "characters" : type}/${uid}.jpg`}
+                            className="img-fluid w-100 h-100"
+                            style={{ objectFit: "cover", minHeight: "400px" }}
+                            alt={item?.name}
+                            onError={e => e.target.src = "https://starwars-visualguide.com/assets/img/placeholder.jpg"}
+                        />
+                    </div>
+                    <div className="col-md-6 d-flex flex-column justify-content-center p-4">
+                        <h1 className="display-4 text-warning fw-bold mb-3">{item?.name}</h1>
+                        
+                        {/* DESCRIPCIÓN DINÁMICA SEGÚN EL TIPO */}
+                        <p className="lead fs-4">
+                            {type === "people" 
+                                ? `${item?.name} is a fascinating character with ${item?.eye_color} eyes and ${item?.hair_color} hair. Born in the year ${item?.birth_year}, this individual stands ${item?.height}cm tall and has played a significant role in the galactic history.`
+                                : `${item?.name} is a celestial body characterized by its ${item?.climate} climate and ${item?.terrain} terrain. It maintains an orbital period of ${item?.orbital_period} days and supports a population of approximately ${item?.population} inhabitants.`
+                            }
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <hr className="border-danger border-2 my-5" />
-
-            {/* TABLA DE DATOS TÉCNICOS */}
-            <div className="row text-danger text-center fw-bold pb-5">
+            {/* TABLA TÉCNICA (Lo que pide el proyecto de 4Geeks) */}
+            <div className="row text-center mt-5 py-3 border-top border-warning text-warning fw-bold bg-black bg-opacity-50 rounded">
                 {type === "people" && (
                     <>
-                        <div className="col"><h5>Birth Year</h5><p className="text-white">{detail.birth_year}</p></div>
-                        <div className="col"><h5>Gender</h5><p className="text-white">{detail.gender}</p></div>
-                        <div className="col"><h5>Height</h5><p className="text-white">{detail.height}</p></div>
-                        <div className="col"><h5>Skin Color</h5><p className="text-white">{detail.skin_color}</p></div>
-                        <div className="col"><h5>Eye Color</h5><p className="text-white">{detail.eye_color}</p></div>
+                        <div className="col-md-2 col-6 mb-3">Name<br/><span className="text-white fw-normal">{item?.name}</span></div>
+                        <div className="col-md-2 col-6 mb-3">Birth Year<br/><span className="text-white fw-normal">{item?.birth_year}</span></div>
+                        <div className="col-md-2 col-6 mb-3">Gender<br/><span className="text-white fw-normal">{item?.gender}</span></div>
+                        <div className="col-md-2 col-6 mb-3">Height<br/><span className="text-white fw-normal">{item?.height}</span></div>
+                        <div className="col-md-2 col-6 mb-3">Skin Color<br/><span className="text-white fw-normal">{item?.skin_color}</span></div>
+                        <div className="col-md-2 col-6 mb-3">Eye Color<br/><span className="text-white fw-normal">{item?.eye_color}</span></div>
                     </>
                 )}
                 {type === "planets" && (
                     <>
-                        <div className="col"><h5>Climate</h5><p className="text-white">{detail.climate}</p></div>
-                        <div className="col"><h5>Population</h5><p className="text-white">{detail.population}</p></div>
-                        <div className="col"><h5>Terrain</h5><p className="text-white">{detail.terrain}</p></div>
-                        <div className="col"><h5>Diameter</h5><p className="text-white">{detail.diameter}</p></div>
-                    </>
-                )}
-                {type === "vehicles" && (
-                    <>
-                        <div className="col"><h5>Model</h5><p className="text-white">{detail.model}</p></div>
-                        <div className="col"><h5>Class</h5><p className="text-white">{detail.vehicle_class}</p></div>
-                        <div className="col"><h5>Cost</h5><p className="text-white">{detail.cost_in_credits}</p></div>
-                        <div className="col"><h5>Speed</h5><p className="text-white">{detail.max_atmosphering_speed}</p></div>
+                        <div className="col-md-2 col-6 mb-3">Climate<br/><span className="text-white fw-normal">{item?.climate}</span></div>
+                        <div className="col-md-2 col-6 mb-3">Population<br/><span className="text-white fw-normal">{item?.population}</span></div>
+                        <div className="col-md-2 col-6 mb-3">Orbital Period<br/><span className="text-white fw-normal">{item?.orbital_period}</span></div>
+                        <div className="col-md-2 col-6 mb-3">Rotation Period<br/><span className="text-white fw-normal">{item?.rotation_period}</span></div>
+                        <div className="col-md-2 col-6 mb-3">Diameter<br/><span className="text-white fw-normal">{item?.diameter}</span></div>
+                        <div className="col-md-2 col-6 mb-3">Terrain<br/><span className="text-white fw-normal">{item?.terrain}</span></div>
                     </>
                 )}
             </div>
-            <div className="text-center pb-5">
-                <Link to="/" className="btn btn-warning btn-lg px-5">Back Home</Link>
+
+            <div className="mt-4 mb-5">
+                <Link to="/" className="btn btn-outline-warning btn-lg px-5 shadow">
+                    <i className="fas fa-arrow-left me-2"></i> Back Home
+                </Link>
             </div>
         </div>
     );
