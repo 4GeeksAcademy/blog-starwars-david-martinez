@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Roboto:wght@400;700&display=swap');
 
-/* --- 1. RESET Y CONTROL DE ESPACIO --- */
+/* ---  RESET Y CONTROL DE ESPACIO --- */
 * {
     box-sizing: border-box;
 }
@@ -16,14 +16,14 @@ html, body {
     overflow-x: hidden; /* Evita el margen derecho rebelde */
 }
 
-/* --- 2. EL VIDEO (Capa base) --- */
+/* ---  VIDEO  --- */
 .bg-video-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 0; /* Capa inicial */
+    z-index: 0; 
     overflow: hidden;
 }
 
@@ -34,15 +34,15 @@ html, body {
     opacity: 0.6;
 }
 
-/* --- 3. EL CONTENIDO (Capa superior) --- */
+/* ---  CONTENIDO (Capa superior) --- */
 .content-wrapper {
     position: relative;
-    z-index: 1; /* Por encima del video */
+    z-index: 1; 
     width: 100%;
     background: transparent;
 }
 
-/* --- 4. COMPONENTES STAR WARS --- */
+/* --- COMPONENTES STAR WARS --- */
 .card {
     background-color: rgba(25, 25, 25, 0.8) !important;
     backdrop-filter: blur(10px);

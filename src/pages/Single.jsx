@@ -56,7 +56,7 @@ export const Single = () => {
                 </div>
             </div>
 
-            {/* TABLA TÉCNICA (Lo que pide el proyecto de 4Geeks) */}
+            {/* TABLA TÉCNICA */}
             <div className="row text-center mt-5 py-3 border-top border-warning text-warning fw-bold bg-black bg-opacity-50 rounded">
                 {type === "people" && (
                     <>
