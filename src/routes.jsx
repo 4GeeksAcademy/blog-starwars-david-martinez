@@ -21,7 +21,7 @@ export const router = createBrowserRouter([
                 // Uso ":type" para saber si es un personaje o planeta.
                 // Uso ":uid" para saber el ID específico.
                 // Así, un solo componente (Single) sirve para miles de páginas diferentes.
-                path: "single/:type/:uid", 
+                path: ":type/:uid", 
                 element: <Single /> 
             },
         ],

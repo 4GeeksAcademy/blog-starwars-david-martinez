@@ -1,82 +1,88 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import useStore from "../hooks/useGlobalReducer";
+import useGlobalReducer from "../hooks/useGlobalReducer";
+import { Loader } from "../components/Loader";
+import { ACTION_TYPES } from "../store";
+import { getPlaceholderImage, getResourceImageUrl, loadCatalog } from "../services/swapi";
 
 export const Home = () => {
-    // Traigo el store y el dispatch de mi hook global
-    const { store, dispatch } = useStore();
-    // Estado local para lo que el usuario escribe en el buscador
+    const { store, dispatch } = useGlobalReducer();
     const [search, setSearch] = useState("");
 
     useEffect(() => {
-        // Defino las categorías que quiero pedir a la API
-        const endpoints = ["people", "planets", "vehicles"];
-        
-        // REVISO EL NAVEGADOR: ¿Ya pedimos estos datos antes? 
-        // Si ya están guardados, los usamos para que la página cargue instantáneo
-        const storedPeople = localStorage.getItem("people");
-        const storedPlanets = localStorage.getItem("planets");
-        const storedVehicles = localStorage.getItem("vehicles");
+        loadCatalog(dispatch, { hasLoaded: store.status.catalog.hasLoaded });
+    }, [dispatch, store.status.catalog.hasLoaded]);
 
-        if (storedPeople && storedPlanets && storedVehicles) {
-            // Si los encontré, aviso al Reducer para que los guarde en el estado global
-            dispatch({ type: "set_people", payload: JSON.parse(storedPeople) });
-            dispatch({ type: "set_planets", payload: JSON.parse(storedPlanets) });
-            dispatch({ type: "set_vehicles", payload: JSON.parse(storedVehicles) });
-        } else {
-            // Si NO están guardados, recorro cada categoría y hago el fetch a la API
-            endpoints.forEach(type => {
-                fetch(`https://www.swapi.tech/api/${type}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        // Guardo el resultado en el estado global
-                        dispatch({ type: `set_${type}`, payload: data.results });
-                        // Y también lo guardo en el LocalStorage para la próxima vez
-                        localStorage.setItem(type, JSON.stringify(data.results));
-                    })
-                    .catch(err => console.error(`Ups, hubo un error en ${type}:`, err));
-            });
-        }
-    }, []); // El [] vacío significa que esto solo corre una vez al principio
+    const isFavorite = (item, type) =>
+        store.favorites.some(
+            (favorite) => favorite.uid === String(item.uid) && favorite.type === type
+        );
 
-    // FUNCIÓN PARA EL BOTÓN DE CORAZÓN
-    const toggleFavorite = (name) => {
-        // Si el nombre ya está en favoritos, lo borro. Si no está, lo agrego.
-        store.favorites.includes(name) 
-            ? dispatch({ type: "delete_favorite", payload: name }) 
-            : dispatch({ type: "add_favorite", payload: name });
+    const toggleFavorite = (item, type) => {
+        dispatch({
+            type: ACTION_TYPES.toggleFavorite,
+            payload: { uid: item.uid, type, name: item.name }
+        });
     };
 
-    // FILTRO DE BÚSQUEDA: Comparo lo que hay en el store con lo que el usuario escribe
-    // Uso toLowerCase() para que no importe si escriben en mayúsculas o minúsculas
-    const filteredPeople = store.people?.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
-    const filteredPlanets = store.planets?.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
-    const filteredVehicles = store.vehicles?.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
+    const filterItems = (items = []) =>
+        items.filter((item) =>
+            item.name.toLowerCase().includes(search.toLowerCase())
+        );
 
-    // ESTO ES MI "PLANTILLA" PARA LAS CARTAS
-    // Así no tengo que repetir el código de la carta 3 veces abajo
-    const renderCard = (item, type) => (
-        <div key={item.uid} className="card text-white border-secondary me-3 shadow" style={{ minWidth: "18rem", backgroundColor: "rgba(25, 25, 25, 0.7)", backdropFilter: "blur(5px)" }}>
-            {/* Busco la imagen usando el ID único (uid). Si no existe, pongo una por defecto */}
-            <img 
-                src={`https://raw.githubusercontent.com/tbone849/star-wars-guide/master/build/assets/img/${type === "people" ? "characters" : type}/${item.uid}.jpg`} 
-                className="card-img-top" 
-                style={{ height: type === "vehicles" ? "200px" : "300px", objectFit: "cover" }}
-                onError={e => e.target.src = "https://starwars-visualguide.com/assets/img/placeholder.jpg"} 
-            />
-            <div className="card-body">
-                <h5 className="card-title fw-bold">{item.name}</h5>
-                <div className="d-flex justify-content-between mt-4">
-                    {/* Botón para ir a la página de detalles */}
-                    <Link to={`/single/${type}/${item.uid}`} className="btn btn-outline-primary px-4">Learn more!</Link>
-                    {/* Botón de favorito: cambia el color del corazón si ya es favorito */}
-                    <button className="btn btn-outline-warning" onClick={() => toggleFavorite(item.name)}>
-                        <i className={store.favorites.includes(item.name) ? "fas fa-heart text-danger" : "far fa-heart"}></i>
+    const filteredPeople = filterItems(store.catalog.people);
+    const filteredPlanets = filterItems(store.catalog.planets);
+    const filteredVehicles = filterItems(store.catalog.vehicles);
+
+    const renderCard = (item, type) => {
+        const favorite = isFavorite(item, type);
+
+        return (
+            <div key={item.uid} className="card text-white border-secondary me-3 shadow" style={{ minWidth: "18rem", backgroundColor: "rgba(25, 25, 25, 0.7)", backdropFilter: "blur(5px)" }}>
+                <img 
+                    src={getResourceImageUrl(type, item.uid)} 
+                    className="card-img-top" 
+                    style={{ height: type === "vehicles" ? "200px" : "300px", objectFit: "cover" }}
+                    onError={e => e.target.src = getPlaceholderImage()} 
+                />
+                <div className="card-body">
+                    <h5 className="card-title fw-bold">{item.name}</h5>
+                    <div className="d-flex justify-content-between mt-4">
+                        <Link to={`/${type}/${item.uid}`} className="btn btn-outline-primary px-4">Learn more!</Link>
+                        <button className={`btn ${favorite ? "btn-warning" : "btn-outline-warning"}`} onClick={() => toggleFavorite(item, type)}>
+                            <i className={favorite ? "fas fa-heart text-danger" : "far fa-heart"}></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    if (store.status.catalog.isLoading) {
+        return <Loader text="Loading characters, planets and vehicles..." />;
+    }
+
+    if (store.status.catalog.error) {
+        return (
+            <div className="container mt-5">
+                <div className="alert alert-danger d-flex justify-content-between align-items-center">
+                    <span>{store.status.catalog.error}</span>
+                    <button
+                        type="button"
+                        className="btn btn-outline-danger btn-sm"
+                        onClick={() =>
+                            loadCatalog(dispatch, {
+                                hasLoaded: store.status.catalog.hasLoaded,
+                                forceReload: true
+                            })
+                        }
+                    >
+                        Retry
                     </button>
                 </div>
             </div>
-        </div>
-    );
+        );
+    }
 
     return (
         <div className="container mt-5" style={{ backgroundColor: "transparent" }}>
@@ -102,22 +108,24 @@ export const Home = () => {
             {/* Listas horizontales de Personajes, Planetas y Vehículos */}
             <h2 className="text-warning mb-4 fw-bold">Characters</h2>
             <div className="d-flex flex-row overflow-auto mb-5 pb-3 custom-scrollbar">
-                {/* Mapeo la lista filtrada para crear una carta por cada personaje */}
-                {filteredPeople?.map(item => renderCard(item, "people"))}
+                {filteredPeople.length > 0 ? filteredPeople.map(item => renderCard(item, "people")) : (
+                    <div className="alert alert-secondary mb-0">No characters found.</div>
+                )}
             </div>
 
             <h2 className="text-warning mb-4 fw-bold">Planets</h2>
             <div className="d-flex flex-row overflow-auto mb-5 pb-3 custom-scrollbar">
-                {filteredPlanets?.map(item => renderCard(item, "planets"))}
+                {filteredPlanets.length > 0 ? filteredPlanets.map(item => renderCard(item, "planets")) : (
+                    <div className="alert alert-secondary mb-0">No planets found.</div>
+                )}
             </div>
 
             <h2 className="text-warning mb-4 fw-bold">Vehicles</h2>
             <div className="d-flex flex-row overflow-auto mb-5 pb-3 custom-scrollbar">
-                {filteredVehicles?.map(item => renderCard(item, "vehicles"))}
+                {filteredVehicles.length > 0 ? filteredVehicles.map(item => renderCard(item, "vehicles")) : (
+                    <div className="alert alert-secondary mb-0">No vehicles found.</div>
+                )}
             </div>
         </div>
     );
 };
-
-
-/// Con los comentarios como me dije Erwin :D 

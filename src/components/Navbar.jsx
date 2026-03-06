@@ -1,10 +1,9 @@
-import React from "react";
 import { Link } from "react-router-dom";
-import useStore from "../hooks/useGlobalReducer";
+import useGlobalReducer from "../hooks/useGlobalReducer";
+import { ACTION_TYPES } from "../store";
 
 export const Navbar = () => {
-    // Traigo el store para ver los favoritos y el dispatch para poder borrarlos
-    const { store, dispatch } = useStore();
+    const { store, dispatch } = useGlobalReducer();
 
     return (
         // Uso 'sticky-top' para que la barra siempre nos acompañe al hacer scroll
@@ -28,17 +27,23 @@ export const Navbar = () => {
                         <li className="dropdown-item text-white-50 text-center small">No favorites yet</li>
                     ) : (
                         // Si HAY favoritos, recorro el array y dibujo cada uno
-                        store.favorites.map((fav, index) => (
-                            <li key={index} className="dropdown-item d-flex justify-content-between align-items-center text-white py-2">
-                                {/* 'text-truncate' evita que nombres muy largos deformen el menú */}
-                                <span className="text-truncate" style={{ maxWidth: "150px" }}>{fav}</span>
+                        store.favorites.map((fav) => (
+                            <li key={`${fav.type}-${fav.uid}`} className="dropdown-item d-flex justify-content-between align-items-center text-white py-2">
+                                <Link
+                                    to={`/${fav.type}/${fav.uid}`}
+                                    className="text-truncate text-decoration-none text-white"
+                                    style={{ maxWidth: "150px" }}
+                                >
+                                    {fav.name}
+                                </Link>
                                 
-                                {/* ICONO DE PAPELERA: Para borrar el favorito directamente */}
                                 <i className="fas fa-trash-alt ms-3 text-danger" style={{ cursor: "pointer" }} 
                                    onClick={(e) => { 
-                                       // 'e.stopPropagation' es clave: evita que al borrar se cierre el menú solo
                                        e.stopPropagation(); 
-                                       dispatch({ type: "delete_favorite", payload: fav }); 
+                                       dispatch({
+                                           type: ACTION_TYPES.removeFavorite,
+                                           payload: { uid: fav.uid, type: fav.type }
+                                       }); 
                                    }}></i>
                             </li>
                         ))
