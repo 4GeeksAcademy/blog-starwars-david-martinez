@@ -1,28 +1,32 @@
 import { createBrowserRouter } from "react-router-dom";
-import { Layout } from "./pages/Layout"; 
 import { Home } from "./pages/Home";
 import { Single } from "./pages/Single";
+import { Layout } from "./pages/Layout";
 
-// ESTE ES EL MAPA DE MI APLICACIÓN
+
 export const router = createBrowserRouter([
     {
-        // 1. RUTA PADRE: El Layout es el contenedor principal.
-        // Todo lo que esté dentro de 'children' se renderizará en el <Outlet /> del Layout.
         path: "/",
         element: <Layout />,
         children: [
-            { 
-                // 2. PÁGINA DE INICIO: Cuando la URL sea exactamente "/", cargo el Home.
-                path: "/", 
-                element: <Home /> 
+            {
+                index: true,
+                element: <Home />,
             },
-            { 
-                // 3. RUTA DINÁMICA: Esta es la parte más flexible.
-                // Uso ":type" para saber si es un personaje o planeta.
-                // Uso ":uid" para saber el ID específico.
-                // Así, un solo componente (Single) sirve para miles de páginas diferentes.
-                path: "single/:type/:uid", 
-                element: <Single /> 
+            {
+                // Ruta corregida según el feedback 
+                path: "/:type/:uid",
+                element: <Single />,
+            },
+            {
+                // Página de error 404 por si el usuario escribe una ruta inexistente
+                path: "*",
+                element: (
+                    <div className="text-center text-white mt-5">
+                        <h1>404 - Not Found</h1>
+                        <p>This is not the page you are looking for...</p>
+                    </div>
+                ),
             },
         ],
     },
